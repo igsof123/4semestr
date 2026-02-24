@@ -1,0 +1,68 @@
+#Реализовать алгоритм Бойера-Мура для поиска по образцу
+
+
+def get_bad_char_table(pattern):
+    """
+    Создает таблицу последних вхождений символов в шаблоне.
+    Для символов, которых нет в шаблоне, значение будет -1.
+    """
+    m = len(pattern)
+    bad_char = {}
+
+    # Заполняем таблицу для всех символов, присутствующих в паттерне
+    for i in range(m):
+        bad_char[pattern[i]] = i
+
+    return bad_char
+
+
+def boyer_moore_search(text, pattern):
+    """
+    Реализация алгоритма Бойера-Мура с использованием правила плохого символа.
+    """
+    n = len(text)
+    m = len(pattern)
+
+    if m == 0: return []
+
+    bad_char = get_bad_char_table(pattern)
+    results = []
+    shift = 0  # Смещение паттерна относительно текста
+
+    while shift <= (n - m):
+        j = m - 1  # Начинаем сравнение с конца паттерна
+
+        # Сравниваем символы справа налево
+        while j >= 0 and pattern[j] == text[shift + j]:
+            j -= 1
+
+        if j < 0:
+            # Нашли совпадение!
+            results.append(shift)
+
+            # Сдвигаем паттерн так, чтобы следующий символ в тексте
+            # совпал со своим последним вхождением в паттерне.
+            # Условие (shift + m < n) нужно, чтобы не выйти за границы текста.
+            if shift + m < n:
+                next_char = text[shift + m]
+                shift += m - bad_char.get(next_char, -1)
+            else:
+                shift += 1
+        else:
+            # Несовпадение: используем правило плохого символа
+            bad_char_in_text = text[shift + j]
+            # Вычисляем сдвиг: текущий индекс j минус позиция этого символа в паттерне
+            # max(1, ...) гарантирует, что мы всегда двигаемся вперед
+            shift += max(1, j - bad_char.get(bad_char_in_text, -1))
+
+    return results
+
+
+# Тестирование
+text = "HERE IS A SIMPLE EXAMPLE"
+pattern = "EXAMPLE"
+matches = boyer_moore_search(text, pattern)
+
+print(f"Текст: '{text}'")
+print(f"Паттерн: '{pattern}'")
+print(f"Индексы вхождений: {matches}")
