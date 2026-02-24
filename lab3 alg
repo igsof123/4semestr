@@ -1,0 +1,80 @@
+#Реализовать алгоритм поиска по образцу с помощью конечного автомата
+
+
+
+def compute_transition_table(pattern, alphabet_size=256):
+    """
+    Строит таблицу переходов для конечного автомата.
+    m - длина образца
+    Состояние i означает, что первые i символов образца совпали.
+    """
+    m = len(pattern)
+    # Таблица переходов: [состояние][символ]
+    tf = [[0] * alphabet_size for _ in range(m + 1)]
+
+    for state in range(m + 1):
+        for char_code in range(alphabet_size):
+            # Если символ совпадает со следующим символом в образце
+            if state < m and chr(char_code) == pattern[state]:
+                tf[state][char_code] = state + 1
+            else:
+                # Находим максимально возможный префикс, который является суффиксом
+                # строки pattern[:state] + chr(char_code)
+                next_state = state
+                while next_state > 0:
+                    prefix_plus_char = pattern[:next_state] + chr(char_code)
+                    if pattern.startswith(prefix_plus_char):
+                        tf[state][char_code] = next_state + 1
+                        break
+
+                    # Используем "запасной" вариант (упрощенный поиск префикса)
+                    # Для оптимизации здесь обычно используют функцию префикса из KMP
+                    # Но для ясности алгоритма оставим логику отката:
+                    temp_str = pattern[:state] + chr(char_code)
+                    # Ищем максимальный k < state+1 такой, что pattern[:k] == temp_str[-(k):]
+                    found = False
+                    for k in range(state, 0, -1):
+                        if temp_str.endswith(pattern[:k]):
+                            tf[state][char_code] = k
+                            found = True
+                            break
+                    if found: break
+                    next_state = 0
+
+    return tf
+
+
+def search_with_ffa(text, pattern):
+    """
+    Выполняет поиск всех вхождений образца в тексте.
+    """
+    n = len(text)
+    m = len(pattern)
+    tf = compute_transition_table(pattern)
+
+    current_state = 0
+    results = []
+
+    for i in range(n):
+        # Переходим в следующее состояние на основе текущего символа текста
+        char_code = ord(text[i])
+        if char_code < len(tf[0]):
+            current_state = tf[current_state][char_code]
+        else:
+            current_state = 0  # Символ вне алфавита
+
+        # Если достигли конечного состояния (длина образца)
+        if current_state == m:
+            results.append(i - m + 1)
+
+    return results
+
+
+# Пример использования
+text = "ababcababaad"
+pattern = "ababa"
+indices = search_with_ffa(text, pattern)
+
+print(f"Текст: {text}")
+print(f"Образец: {pattern}")
+print(f"Вхождения найдены на индексах: {indices}")
