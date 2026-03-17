@@ -1,0 +1,53 @@
+from itertools import combinations
+import math
+
+
+# 1. Пересечение двух прямых (через коэффициенты Ax + By = C)
+def intersect_lines(l1, l2):
+    # l1 = (a1, b1, c1), l2 = (a2, b2, c2)
+    det = l1[0] * l2[1] - l1[1] * l2[0]
+    if det == 0: return None  # Параллельны
+    x = (l1[2] * l2[1] - l1[1] * l2[2]) / det
+    y = (l1[0] * l2[2] - l1[2] * l2[0]) / det
+    return (x, y)
+
+
+# 2. Проверка: лежит ли точка внутри треугольника (для задачи о вложенности)
+def is_inside_triangle(A, B, C, P):
+    def area(p1, p2, p3):
+        return abs((p1[0] * (p2[1] - p3[1]) + p2[0] * (p3[1] - p1[1]) + p3[0] * (p1[1] - p2[1])) / 2.0)
+
+    total_area = area(A, B, C)
+    area1 = area(P, A, B)
+    area2 = area(P, B, C)
+    area3 = area(P, A, C)
+    return math.isclose(total_area, area1 + area2 + area3)
+
+
+def find_nested_triangles(points):
+    n = len(points)
+    if n < 6: return "Недостаточно точек для двух треугольников"
+
+    # Генерируем все возможные треугольники
+    triangles = list(combinations(points, 3))
+    results = []
+
+    for i in range(len(triangles)):
+        for j in range(len(triangles)):
+            if i == j: continue
+
+            T1 = triangles[i]  # Предположим, внешний
+            T2 = triangles[j]  # Предположим, внутренний
+
+            # Проверяем, что все вершины T2 находятся внутри T1
+            if all(is_inside_triangle(T1[0], T1[1], T1[2], p) for p in T2):
+                # Дополнительная проверка: не совпадают ли треугольники полностью
+                if set(T1) != set(T2):
+                    results.append((T1, T2))
+
+    return results
+
+
+pts_2 = [(0, 0), (10, 0), (5, 10), (2, 2), (4, 2), (3, 4)]
+nested = find_nested_triangles(pts_2)
+print(f"Найдено вложенных пар: {len(nested)}")
