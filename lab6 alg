@@ -1,0 +1,52 @@
+def rabin_karp(text, pattern):
+    n = len(text)
+    m = len(pattern)
+
+    if m == 0 or m > n:
+        return []
+
+    base = 256  # Количество символов (ASCII)
+    prime = 101  # Простое число для хеша
+
+    h = 1
+    for _ in range(m - 1):
+        h = (h * base) % prime
+
+    # начальные хеши для паттерна и первого окна текста
+    p_hash = 0  # Хеш паттерна
+    t_hash = 0  # Хеш текущего окна текста
+
+    for i in range(m):  # проходим по первым m символам текста и по всему образцу, строим хеши
+        p_hash = (base * p_hash + ord(pattern[i])) % prime
+        t_hash = (base * t_hash + ord(text[i])) % prime
+
+    result = []
+
+    for i in range(n - m + 1):  #пробегаем по всем позициям, где может начинаться образец
+        # Если хеши совпали, проверяем символы
+        if p_hash == t_hash:
+            if text[i: i + m] == pattern:
+                result.append(i)
+
+        # обновляем хеш
+        if i < n - m:
+            t_hash = (base * (t_hash - ord(text[i]) * h) + ord(text[i + m])) % prime
+
+            # Если хеш стал отрицательным, делаем его положительным
+            if t_hash < 0:
+                t_hash += prime
+
+    return result
+
+
+text = "ABCMNCDDAEFG"
+pattern = "CDD"
+
+found_indices = rabin_karp(text, pattern)
+
+if found_indices:
+    print(f"Найдено в позициях: {found_indices}")
+    for idx in found_indices:
+        print(f"Подстрока: '{text[idx:idx + len(pattern)]}'")
+else:
+    print("Не найдено")
