@@ -1,0 +1,29 @@
+def egg_drop(eggs: int, floors: int) -> int:
+    # dp[i][j] — минимальное число попыток для i яиц и j этажей
+    dp = [[0] * (floors + 1) for _ in range(eggs + 1)]
+
+    # Базовые случаи
+    for i in range(1, eggs + 1):
+        dp[i][1] = 1  # 1 этаж — 1 попытка
+        dp[i][0] = 0  # 0 этажей — 0 попыток
+
+    for j in range(1, floors + 1):
+        dp[1][j] = j  # 1 яйцо — j попыток (последовательно)
+
+    # Заполнение таблицы
+    for i in range(2, eggs + 1):
+        for j in range(2, floors + 1):
+            dp[i][j] = float('inf')
+            # Пробуем бросить с каждого этажа x от 1 до j
+            for x in range(1, j + 1):
+                # Если разбилось: dp[i-1][x-1]
+                # Если уцелело: dp[i][j-x]
+                res = 1 + max(dp[i-1][x-1], dp[i][j-x])
+                dp[i][j] = min(dp[i][j], res)
+
+    return dp[eggs][floors]
+
+
+eggs_count = 2
+floors_count = 100
+print(f"Минимальное количество бросков: {egg_drop(eggs_count, floors_count)}")
