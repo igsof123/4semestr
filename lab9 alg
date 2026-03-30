@@ -1,0 +1,61 @@
+#Битовая маска: Мы используем целое число как массив bool. Если i-й бит равен 1, значит i-й город уже в маршруте.
+#Рекурсия с мемоизацией: Мы запоминаем результаты для каждой пары (набор городов, текущий город), чтобы не пересчитывать их многократно.
+#Завершение цикла: Когда маска заполнена единицами, алгоритм добавляет расстояние до стартовой точки, чтобы удовлетворить условию возврата.
+
+
+
+
+from typing import List
+
+
+def solve_tsp(matrix: List[List[int]]) -> float:
+    n = len(matrix)
+    if n == 0: return 0
+
+    # Полная маска: все биты от 0 до n-1 установлены в 1
+    # Например, для 4 городов: (1 << 4) - 1 = 1111 в двоичной системе
+    all_visited = (1 << n) - 1
+
+    # Таблица DP: dp[mask][last_city]
+    # Инициализируем бесконечностью
+    memo = {}
+
+    def visit(mask: int, last: int) -> float:
+        # Базовый случай: все города посещены
+        if mask == all_visited:
+            # Возвращаемся в начальный город (0)
+            return matrix[last][0] if matrix[last][0] != 0 else float('inf')
+
+        state = (mask, last)
+        if state in memo:
+            return memo[state]
+
+        res = float('inf')
+
+        # Пытаемся пойти в каждый не посещенный город
+        for next_city in range(n):
+            # Проверяем, посещен ли город через побитовое И
+            if not (mask & (1 << next_city)):
+                distance = matrix[last][next_city]
+                if distance != float('inf'):
+                    new_res = distance + visit(mask | (1 << next_city), next_city)
+                    res = min(res, new_res)
+
+        memo[state] = res
+        return res
+
+    # Начинаем с 0-го города, маска включает только его (1 << 0)
+    result = visit(1 << 0, 0)
+    return result
+
+
+# 4 города
+adj_matrix = [
+    [0, 10, 15, 20],
+    [10, 0, 35, 25],
+    [15, 35, 0, 30],
+    [20, 25, 30, 0]
+]
+
+min_dist = solve_tsp(adj_matrix)
+print(f"Минимальное расстояние: {min_dist}")
