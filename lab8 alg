@@ -1,0 +1,29 @@
+from typing import List
+
+
+def count_change_ways(amount: int, coins: List[int]) -> int:
+    # Создаем массив для хранения количества способов для каждой суммы до amount
+    # Инициализируем нулями, dp[0] = 1
+    dp = [0] * (amount + 1)
+    dp[0] = 1
+
+    # Итерируемся по каждой монете
+    for coin in coins:
+        # Обновляем значения dp для всех сумм, которые больше или равны номиналу монеты
+        for x in range(coin, amount + 1):
+            dp[x] += dp[x - coin]
+
+    return dp[amount]
+
+
+
+target_amount = 5
+coin_set = [1, 2, 5]
+
+result = count_change_ways(target_amount, coin_set)
+print(f"Количество способов составить {target_amount}: {result}")
+# Для 5 с монетами [1, 2, 5] это:
+# 1) 1+1+1+1+1
+# 2) 1+1+1+2
+# 3) 1+2+2
+# 4) 5
